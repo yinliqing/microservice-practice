@@ -1,0 +1,163 @@
+
+server:
+  port: 9000
+spring:
+  application:
+    name: gateway-zuul
+eureka:
+  client:
+    registry-with-eureka: false 
+    fetch-registry: false
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+      # defaultZone: http://yinliqing:1234567@localhost:8761/eureka
+zuul:
+  ribbonIsolationStrategy: THREAD
+  host:
+    connect-timeout-millis: 6000
+    socket-timeout-millis: 6000
+  ignoredServices: '*'
+  routes:
+    app-a:
+      path: /u/**
+      url: http://localhost:7901/
+    app-b:
+      path: /c/**
+      serviceId: provider-user
+
+
+# 开启负载均衡
+# ribbon.eureka.enable=true
+ribbon:
+  eureka:
+    enabled: true
+    
+# feign.hystrix.enabled=true
+feign:
+  hystrix:
+    enabled: true
+
+            
+provider-user:
+  ribbon:
+    listOfServers: example.com,google.com
+
+# 8. Router and Filter: Zuul
+# https://cloud.spring.io/spring-cloud-netflix/multi/multi__router_and_filter_zuul.html
+
+server:
+  port: 9000
+spring:
+  application:
+    name: gateway-zuul
+eureka:
+  client:
+    registry-with-eureka: false 
+    fetch-registry: false
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+      # defaultZone: http://yinliqing:1234567@localhost:8761/eureka
+zuul:
+  ribbonIsolationStrategy: THREAD
+  host:
+    connect-timeout-millis: 6000
+    socket-timeout-millis: 6000
+  ignoredServices: '*'
+  routes:
+    app-a:
+      path: /u/**
+      url: http://localhost:7901/
+    app-b:
+      path: /c/**
+      serviceId: provider-user
+
+
+# 开启负载均衡
+# ribbon.eureka.enable=true
+ribbon:
+  eureka:
+    enabled: true
+    
+# feign.hystrix.enabled=true
+feign:
+  hystrix:
+    enabled: true
+    
+zuul:
+  # 全局开启重试机制
+  retryable: true
+  # 信号量模式
+  ribbon-isolation-strategy: semaphore
+  # 最大信号量
+  semaphore:
+    max-semaphore: 100
+ribbon:
+  ConnectTimeout: 250 # 连接超时时间（ms），默认值为250ms
+  ReadTimeout: 2000 # 通信超时时间（ms），默认值为2000ms
+  OkToRetryOnAllOperations: true # 是否对所有操作都进行重试
+  MaxAutoRetriesNextServer: 0 # 对同一服务不同实例重试次数（同一服务下集群个数的重试次数）
+  MaxAutoRetries: 2 # 对同一实例重试次数（单个集群节点服务重试次数）
+# 开启熔断机制，超过六秒即开启熔断机制，网关内的时间排序，zuul的通信时间 > hystrix熔断时间 > retry重试时间
+hytrix:
+  command:
+    default:
+      execution:
+        isolation:
+          semaphore:
+            timeoutInMilliseconds: 7000
+
+
+ 
+zuul:
+  # 全局开启重试机制
+  retryable: true
+  # 信号量模式
+  ribbon-isolation-strategy: thread # 线程模式
+  # 线程池参数
+  threadpool:
+    coreSize: 1 # 线程池大小，并发下对应的线程数量
+    maxQueueSize: 3 # 缓冲区大小，如果为-1，则不缓冲，直接进行降级fallback
+    queueSizeRejectionThreshold: 2 # 缓冲区大小超限的阈值，超限就直接降级
+ribbon:
+  ConnectTimeout: 250 # 连接超时时间（ms），默认值为250ms
+  ReadTimeout: 2000 # 通信超时时间（ms），默认值为2000ms
+  OkToRetryOnAllOperations: true # 是否对所有操作都进行重试
+  MaxAutoRetriesNextServer: 0 # 对同一服务不同实例重试次数（同一服务下集群个数的重试次数）
+  MaxAutoRetries: 2 # 对同一实例重试次数（单个集群节点服务重试次数）
+# 开启熔断机制，超过六秒即开启熔断机制，网关内的时间排序，zuul的通信时间 > hystrix熔断时间 > retry重试时间
+hytrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 7000
+
+
+prefix 和 strip-prefix使用
+prefix：前缀，当请求匹配前缀时会进行代理。
+strip-prefix：代理前缀默认会从请求路径中移除，通过该设置关闭移除功能。
+例如：
+1. 当 stripPrefix=true 的时 （会移除），默认为true
+http://127.0.0.1:7001/api/userdemo/list 变为http://192.168.1.100:8080/userdemo/list）
+2. 当stripPrefix=false的时（不会移除）
+http://127.0.0.1:7001/api/userdemo/list 变为http://192.168.1.100:8080/api/userdemo/list
+
+ # 将请求/api/userdemo/test 转发到user-demo的 /api/test
+  prefix: /api   # 访问网关路径的前缀（在映射路径的前面，一般用于区别开发的版本）
+  strip-prefix: false
+  ##路由代理
+  routes:
+    user-token:
+      path: /userdemo/**
+      serviceId: user-demo
+      ------------------------------------------------------------------------
+# 将请求/api/userdemo/test 转发到user-demo的 /userdemo/test
+  prefix: /api   # 访问网关路径的前缀（在映射路径的前面，一般用于区别开发的版本）
+  ##路由代理
+  routes:
+    user-token:
+      path: /userdemo/**
+      strip-prefix: false
+      serviceId: user-demo
+            
