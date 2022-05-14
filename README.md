@@ -1,7 +1,10 @@
 # microservice-practice
-spring-cloud demo for study
+spring-cloud demo for training
 
-https://img.shields.io/
+git clone https://github.com/yinliqing/microservice-practice.git
+
+File-->Import-->Maven-->Existing Maven Projects
+
 
 Start microservice-server-eureka.
 http://localhost:8761
